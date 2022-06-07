@@ -36,7 +36,7 @@ $(document).ready(() => {
     const loginUser = () => {
         $objHead = $('head');
 
-        socket = io(SERVER_URL);
+        socket = io();
 
         socket.on('connect', () => {
 
@@ -608,7 +608,6 @@ function countDown() {
 }
 
 function allowMovements() {
-   
     let height = $(document).height()/4; 
     if (!isMobile) {
         cursors = game.scene.scenes[0].input.keyboard.createCursorKeys();
@@ -620,7 +619,6 @@ function allowMovements() {
     }
     game.scene.scenes[0].backgroundSong.play(musicConfig);
     game.sound.setVolume($('#range-volume').val());
-    aiLogicStart();
 }
 
 var zoomDisable = function () {

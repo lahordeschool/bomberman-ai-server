@@ -32,13 +32,6 @@ function setupGame() {
     socket.emit('start-game', { b: bombs, f: flames, s: speed, players: userList });
 };
 
-var map, tileset, layer, scene;
-var players;
-var bombs, flipFlopBomb;
-var animated; //animated is used to show the right animation with the player sprite
-var anim;
-var walls;
-
 function startGame(b, f, s, playersList, your_id, stage, items) {
 
     var config = {
@@ -75,10 +68,15 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
     $('.game').show();
     $('.icon-volume').removeClass('fa-volume-off').addClass('fa-volume-up');
     $('.canvasContainer').html("");
-    isMobile = true;
+    isMobile = !game.device.os.desktop;
     everyoneReady = false;
 
-
+    var map, tileset, layer, scene;
+    var players;
+    var bombs, flipFlopBomb;
+    var animated; //animated is used to show the right animation with the player sprite
+    var anim;
+    var walls;
 
 
     function preload() {
@@ -238,10 +236,8 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
         //MOBILE CURSORS
         if (isMobile) {
             $('.controls').show();
-        setupVirtualKeys();
+            setupVirtualKeys();
         }
-
-        
 
         //INITIALIZATIONS VARIABLES
         animated = false;
@@ -293,6 +289,8 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
         scene.physics.add.collider(scene.playersGroup, wall);
         return wall;
     }
+
+
 
 
 
@@ -354,11 +352,9 @@ function startGame(b, f, s, playersList, your_id, stage, items) {
 
     const setupVirtualKeys = () => {
         $('#chevron-up').bind('mousedown touchstart', () => {
-            
             chevronUp = true;
         });
         $('#chevron-down').bind('mousedown touchstart', () => {
-            console.log("checked");
             chevronDown = true;
         });
         $('#chevron-left').bind('mousedown touchstart', () => {
