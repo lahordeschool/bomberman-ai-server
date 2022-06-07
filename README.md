@@ -1,5 +1,4 @@
-# Marco Cavalli - X81000445
-# Bomberman
+# Bomberman AI Server
 
 <ol>
   <li><a href="#intro">Introduction</a></li>
@@ -24,7 +23,7 @@
 
 # <span name="intro">Introduction</span>
 <lr>
-<span>Assignment for the Web Programming course of the University of Catania. This is a repo about a Bomberman-like multiplayer videogame as a Node.js application. 
+<span>This is a repo about a Bomberman-like multiplayer videogame as a Node.js application. 
 
 Do you believe that nowadays games are overrated? Do you still play with your Super Nintendo because PS5 is just for spoiled children? Then you will surely like this project! You probably should know about Bomberman (if not, shame on you, google it... now). The gameplay is pretty straight-forward: 2 to 4 players fighting each others using bombs. You can get power-ups to become stronger. The last man standing wins (doesn't it sounds so much like battle royales?).
 
