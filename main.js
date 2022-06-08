@@ -35,6 +35,10 @@ app.get('/test', function (req, res) {
 
 const rooms = {};
 const main_lobby = ' lobby ';
+var placedBombsCounter = {};
+var gameTimers = {};
+
+
 io.on('connection', function (client) {
 
     client.on("disconnect", () => {
@@ -174,9 +178,50 @@ io.on('connection', function (client) {
         io.sockets.in(client.roomName).emit('user_list', { list: rooms[client.roomName].userList, h: rooms[client.roomName].host });
     });
 
+   
+
+    async function timerGame(roomName){
+        gameTimers[roomName] = setTimeout(function(){
+            if(roomName !== undefined){
+                console.log("Room "+roomName+" IT HAS BEEN TOOOOOOO LONG");
+                if(rooms[roomName] !== undefined && rooms[client.roomName].gameStarted && rooms[roomName].userList.length > 0){
+
+                    console.log(rooms[roomName].players);
+
+                    let topBomberId;
+                    let topBomberScore = 0;
+
+                    if(placedBombsCounter[roomName]){
+                        //check who has planted max bombs
+                        rooms[roomName].players.forEach(id => {
+
+                            if(placedBombsCounter[roomName][id] !== undefined && placedBombsCounter[roomName][id] > topBomberScore){
+                                
+                                topBomberId = id;
+                                topBomberScore = placedBombsCounter[roomName][id];
+                            }
+                        });
+                    } 
+
+                    if(topBomberId === undefined){
+                        console.log("Random winner");
+                        topBomberId = rooms[roomName].players[Math.floor(Math.random()*rooms[roomName].players.length)];
+                    }
+
+                    console.log("Winner should be "+topBomberId);
+
+                    killAllOtherPlayers(roomName, topBomberId);
+                    if(placedBombsCounter[client.roomName] !== undefined){
+                        delete placedBombsCounter[client.roomName];
+                    }
+                }
+            }
+        }, 300000)
+    }
 
     // GAME EVENTS
     client.on('start-game', (data) => {
+        timerGame(client.roomName);
         console.log("[ROOM " + client.roomName + "] - Started a new game");
         rooms[client.roomName].loaded = 0;
         rooms[client.roomName].gameStarted = true;
@@ -189,6 +234,7 @@ io.on('connection', function (client) {
     });
 
     client.on('close-game', () => {
+        clearTimeout(gameTimers[client.roomName]);
         rooms[client.roomName].gameStarted = false;
         io.sockets.in(client.roomName).emit('exit-game');
     });
@@ -231,22 +277,53 @@ io.on('connection', function (client) {
         io.sockets.in(client.roomName).emit('stop-enemy', id);
     });
 
+    
+
     client.on('placed-bomb', (data) => {
+
+        if(placedBombsCounter[client.roomName] === undefined){
+            placedBombsCounter[client.roomName] = {};
+        }
+        if(data !== undefined && (placedBombsCounter[client.roomName][data.player_id] === undefined)){
+            placedBombsCounter[client.roomName][data.player_id] = 0;
+        }
+        placedBombsCounter[client.roomName][data.player_id] = placedBombsCounter[client.roomName][data.player_id]+1;
+
         io.sockets.in(client.roomName).emit('place-enemy-bomb', data);
     })
 
 
     client.on('dead-items', (data) => {
-        console.log('[ROOM ' + client.roomName + '] - Player ' + (data.id + 1) + " died");
-        locations = replaceItems(data.stage, data.items);
-        rooms[client.roomName].map = locations[1];
-        io.sockets.in(client.roomName).emit('kill-player', data.id);
-        io.sockets.in(client.roomName).emit('replace-items', locations[0]);
-        rooms[client.roomName].players = _.filter(rooms[client.roomName].players, (p) => p != data.id);
-        if (rooms[client.roomName].players.length == 1) {
-            io.sockets.in(client.roomName).emit('end-game', rooms[client.roomName].players[0]);
+        if(client.roomName !== undefined){
+            console.log('[ROOM ' + client.roomName + '] - Player ' + (data.id + 1) + " died");
+            locations = replaceItems(data.stage, data.items);
+            rooms[client.roomName].map = locations[1];
+            io.sockets.in(client.roomName).emit('kill-player', data.id);
+            io.sockets.in(client.roomName).emit('replace-items', locations[0]);
+            rooms[client.roomName].players = _.filter(rooms[client.roomName].players, (p) => p != data.id);
+            if (rooms[client.roomName].players.length == 1) {
+                io.sockets.in(client.roomName).emit('end-game', rooms[client.roomName].players[0]);
+            }
         }
     });
+
+    function killAllOtherPlayers(roomName, id){
+
+        if(rooms[roomName] !== undefined && rooms[roomName].players !== undefined){
+            rooms[roomName].players.forEach(playerId => {
+                if(id != playerId){
+                    io.sockets.in(roomName).emit('kill-player', playerId);
+                    rooms[roomName].players = _.filter(rooms[roomName].players, (p) => p != playerId);
+                }
+            });
+            if (rooms[roomName].players.length == 1) {
+                io.sockets.in(roomName).emit('end-game', rooms[roomName].players[0]);
+            }
+        }
+
+        
+        
+    }
 });
 
 
